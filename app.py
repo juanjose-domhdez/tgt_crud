@@ -1,3 +1,32 @@
+
+
+import flet as ft
+from ui.styles import COLOR_BG_DARK
+from ui.login_view import LoginView
+
+def main(page: ft.Page):
+    page.title = "The Gentleman's Tailor - Admin"
+    page.bgcolor = COLOR_BG_DARK
+    page.padding = 0
+
+    page.fonts = {
+        "Cinzel": "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap",
+        "Cormorant": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap",
+        "Montserrat": "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap",
+    }
+
+    def ir_al_dashboard():
+        page.controls.clear()
+       
+        page.add(ft.Text("¡Bienvenido al Dashboard!", color="#F5F2E9", size=30))
+        page.update()
+
+    # Pantalla 1: Iniciar Sesión
+    page.add(LoginView(page, on_login_success=ir_al_dashboard))
+
+if __name__ == "__main__":
+    ft.run(main)
+
 import dao.accesorio_dao as AccesorioDAO
 from models.accesorio import Accesorio
 
