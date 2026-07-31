@@ -31,11 +31,28 @@ def LoginView(page: ft.page, on_login_success):
     )
 
     def iniciar_sesion_click (e):
-        if usuario_input.value and contraseña_input.value :
-            on_login_success()
+        user = usuario_input.value.strip() if usuario_input.value else ""
+        password = contraseña_input.value.strip() if contraseña_input.value else ""
+
+        if not user or not password:
+            snack = ft.SnackBar(
+            content = ft.Text("Ingresa usuario y contraseña"),
+            bgcolor = ft.Colors.RED_900,
+            open = True,
+            )
+            page.overlay.append(snack)
+            page.update()
+            return
+
+        if user in USUARIOS_VALIDOS and USUARIOS_VALIDOS[user] == password:
+            on_login_success ()
         else:
-            page.snack_bar =ft.SnackBar(ft.Text("Ingresa usuario y contraseña"))
-            page.snack_bar.open = True
+            snack = ft.SnackBar(
+                content = ft.Text("Usuario o contraseña incorrectos"),
+                bgcolor = ft.Colors.RED_900,
+                open = True,
+            )
+            page.overlay.append(snack)
             page.update()
 
     car_login = ft.Container(
