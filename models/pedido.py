@@ -18,4 +18,3 @@ class Pedido:
         self.fecha_entrega = fecha_entrega
         self.anticipo = anticipo
         self.total = total
-        self.estado = estado
