@@ -9,7 +9,6 @@ def listar():
         conexion = Conexion.obtener_conexion()
         cursor = conexion.cursor()
         
-        # Nombre de tabla en PLURAL y solo 4 columnas
         sql = "SELECT id_accesorio, nombre, tipo, precio, stock FROM public.accesorios ORDER BY id_accesorio ASC;"
         
         cursor.execute(sql)
