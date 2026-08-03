@@ -1,6 +1,7 @@
 import flet as ft
 from ui.styles import (COLOR_BG_DARK, COLOR_BG_CARD, COLOR_GOLD, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_BORDER, FOND_BRAND,)
-from ui.catalogo_view import CatalogoView
+from ui.catalogo_accesorios_view import CatalogoView
+from ui.catalogo_main_view import CatalogoMainView
 
 def DashboardView(page: ft.Page, on_navigate):
     opcion_activa = {"actual": "dashboard"}
@@ -180,6 +181,7 @@ def DashboardView(page: ft.Page, on_navigate):
                     title = ft.Text("Cerrar Sesión", color = ft.Colors.RED_400),
                     on_click = lambda _: on_navigate("login"),
                 ),
+                
             ],
             spacing = 5,
         )
@@ -189,7 +191,7 @@ def DashboardView(page: ft.Page, on_navigate):
         if vista in ["dashboard", "inicio"]:
             contenido_principal.content = vista_inicio
         elif vista == "catalogo":
-            contenido_principal.content = CatalogoView(page, on_regresar = cambiar_panel)
+            contenido_principal.content = CatalogoMainView(page)
         else:
             contenido_principal.content = ft.Text(
                 f"MÓDULO: {vista.upper()}", 

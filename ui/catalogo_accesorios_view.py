@@ -399,8 +399,8 @@ def CatalogoView(page: ft.Page, on_regresar=None):
                         icon = ft.Icons.ARROW_BACK,
                         icon_color = COLOR_GOLD,
                         icon_size = 28,
-                        tooltip = "Volver a Inicio",
-                        on_click =lambda _: on_regresar("dashboard") if on_regresar else None
+                        tooltip = "Volver al menú de catálogo",
+                        on_click =lambda _: on_regresar() if on_regresar else None
                     ),
                     ft.Column(
                         controls =[
