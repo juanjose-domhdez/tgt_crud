@@ -9,6 +9,7 @@ class Prenda:
         talla="",
         color="",
         precio=0.0,
+        stock=1
     ):
         self.id_prenda = id_prenda
         self.id_pedido = id_pedido
@@ -17,3 +18,4 @@ class Prenda:
         self.talla = talla
         self.color = color
         self.precio = precio
+        self.stock = stock
