@@ -1,19 +1,60 @@
-class Medida:
+from conexion import Conexion
+from models.medidas import Medida
 
-    def __init__(
-        self,
-        id_medida=None,
-        id_pedido=None,
-        pecho=0.0,
-        cintura=0.0,
-        hombros=0.0,
-        manga=0.0,
-        largo_pantalon=0.0,
-    ):
-        self.id_medida = id_medida
-        self.id_pedido = id_pedido
-        self.pecho = pecho
-        self.cintura = cintura
-        self.hombros = hombros
-        self.manga = manga
-        self.largo_pantalon = largo_pantalon
+
+class MedidaDAO:
+
+    @classmethod
+    def seleccionar(cls):
+        sql = """
+            SELECT id_medida, id_pedido, pecho, cintura, hombros, manga, largo_pantalon
+            FROM medidas
+            ORDER BY id_medida DESC
+        """
+        with Conexion.obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                registros = cursor.fetchall()
+                return [
+                    Medida(
+                        id_medida=r[0], id_pedido=r[1], pecho=r[2], cintura=r[3],
+                        hombros=r[4], manga=r[5], largo_pantalon=r[6],
+                    )
+                    for r in registros
+                ]
+
+    @classmethod
+    def insertar(cls, medida):
+        sql = """
+            INSERT INTO medidas (id_pedido, pecho, cintura, hombros, manga, largo_pantalon)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        with Conexion.obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                valores = (medida.id_pedido, medida.pecho, medida.cintura, medida.hombros, medida.manga, medida.largo_pantalon)
+                cursor.execute(sql, valores)
+                conn.commit()
+                return cursor.rowcount
+
+    @classmethod
+    def actualizar(cls, medida):
+        sql = """
+            UPDATE medidas
+            SET id_pedido = %s, pecho = %s, cintura = %s, hombros = %s, manga = %s, largo_pantalon = %s
+            WHERE id_medida = %s
+        """
+        with Conexion.obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                valores = (medida.id_pedido, medida.pecho, medida.cintura, medida.hombros, medida.manga, medida.largo_pantalon, medida.id_medida)
+                cursor.execute(sql, valores)
+                conn.commit()
+                return cursor.rowcount
+
+    @classmethod
+    def eliminar(cls, id_medida):
+        sql = "DELETE FROM medidas WHERE id_medida = %s"
+        with Conexion.obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql, (id_medida,))
+                conn.commit()
+                return cursor.rowcount

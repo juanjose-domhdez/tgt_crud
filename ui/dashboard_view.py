@@ -2,6 +2,7 @@ import flet as ft
 from ui.styles import (COLOR_BG_DARK, COLOR_BG_CARD, COLOR_GOLD, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_BORDER, FOND_BRAND,)
 from ui.catalogo_accesorios_view import CatalogoView
 from ui.catalogo_main_view import CatalogoMainView
+from ui.citas_medidas_main_view import CitasMedidasMainView
 
 def DashboardView(page: ft.Page, on_navigate):
     opcion_activa = {"actual": "dashboard"}
@@ -192,6 +193,9 @@ def DashboardView(page: ft.Page, on_navigate):
             contenido_principal.content = vista_inicio
         elif vista == "catalogo":
             contenido_principal.content = CatalogoMainView(page)
+        elif vista in ["citas", "agendar_cita"]:
+            opcion_activa["actual"] = "citas"
+            contenido_principal.content = CitasMedidasMainView(page)
         else:
             contenido_principal.content = ft.Text(
                 f"MÓDULO: {vista.upper()}", 
