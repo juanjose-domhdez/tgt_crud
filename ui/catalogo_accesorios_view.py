@@ -8,67 +8,68 @@ from ui.styles import (
     COLOR_BORDER,
     FOND_BRAND,
 )
-from dao.accesorio_dao import listar, insertar, eliminar, actualizar
+import dao.accesorio_dao as accesorio_dao
+from dao.accesorio_dao import listar, insertar, eliminar, actualizar, esta_en_pedidos
 from models.accesorio import Accesorio
 
 
 def CatalogoView(page: ft.Page, on_regresar=None):
 
-    #MODO EDICION
+    # MODO EDICION
     accesorio_editando = {"id": None}
     
-    #FILTRADO
+    # FILTRADO
     datos_completos = []
     categoria_seleccionada = {"valor": "Todos"}
 
-    #CAMPOS DEL FORMULARIO (FONDO)
+    # CAMPOS DEL FORMULARIO (FONDO)
     txt_nombre = ft.TextField(
-        label = "Nombre del Accesorio", 
-        border_color = COLOR_BORDER, 
-        color = COLOR_TEXT_PRIMARY, 
-        expand = True
+        label="Nombre del Accesorio", 
+        border_color=COLOR_BORDER, 
+        color=COLOR_TEXT_PRIMARY, 
+        expand=True
     )
     txt_tipo = ft.TextField(
-        label ="Tipo / Categoría", 
-        border_color = COLOR_BORDER, 
-        color = COLOR_TEXT_PRIMARY, 
-        expand = True
+        label="Tipo / Categoría", 
+        border_color=COLOR_BORDER, 
+        color=COLOR_TEXT_PRIMARY, 
+        expand=True
     )
     txt_precio = ft.TextField(
-        label = "Precio Unitario ($)", 
-        border_color = COLOR_BORDER, 
-        color = COLOR_TEXT_PRIMARY, 
-        keyboard_type = ft.KeyboardType.NUMBER,
-        width = 150
+        label="Precio Unitario ($)", 
+        border_color=COLOR_BORDER, 
+        color=COLOR_TEXT_PRIMARY, 
+        keyboard_type=ft.KeyboardType.NUMBER,
+        width=150
     )
     txt_stock = ft.TextField(
-        label ="Stock / Restock", 
-        value = "1",
-        border_color = COLOR_BORDER, 
-        color = COLOR_TEXT_PRIMARY, 
-        keyboard_type = ft.KeyboardType.NUMBER,
-        width = 130
+        label="Stock / Restock", 
+        value="1",
+        border_color=COLOR_BORDER, 
+        color=COLOR_TEXT_PRIMARY, 
+        keyboard_type=ft.KeyboardType.NUMBER,
+        width=130
     )
 
-    #BUSCADOR DE CATEGORIAS
+    # BUSCADOR DE CATEGORIAS
     txt_buscar = ft.TextField(
-        hint_text = "Buscar accesorio por nombre o tipo...",
-        prefix_icon = ft.Icons.SEARCH,
-        border_color = COLOR_BORDER,
-        color = COLOR_TEXT_PRIMARY,
-        content_padding = 10,
-        height = 42,
-        expand = True,
-        on_change = lambda e: filtrar_tabla()
+        hint_text="Buscar accesorio por nombre o tipo...",
+        prefix_icon=ft.Icons.SEARCH,
+        border_color=COLOR_BORDER,
+        color=COLOR_TEXT_PRIMARY,
+        content_padding=10,
+        height=42,
+        expand=True,
+        on_change=lambda e: filtrar_tabla()
     )
 
-    #MENSAJES
+    # MENSAJES
     lbl_mensaje = ft.Text(
-        value = "",
-        color = COLOR_GOLD,
-        size = 14,
-        weight = ft.FontWeight.BOLD,
-        visible = False
+        value="",
+        color=COLOR_GOLD,
+        size=14,
+        weight=ft.FontWeight.BOLD,
+        visible=False
     )
 
     col_metricas = ft.Column(spacing=12, expand=True)
@@ -100,7 +101,7 @@ def CatalogoView(page: ft.Page, on_regresar=None):
         except Exception:
             pass
 
-    #GUARDAR / ACTUALIZAR ACCESORIOS
+    # GUARDAR / ACTUALIZAR ACCESORIOS
     def guardar_accesorio(e):
         nombre = txt_nombre.value.strip() if txt_nombre.value else ""
         tipo = txt_tipo.value.strip() if txt_tipo.value else ""
@@ -128,18 +129,18 @@ def CatalogoView(page: ft.Page, on_regresar=None):
             else:
                 try:
                     acc_actualizado = Accesorio(
-                        id_accesorio = accesorio_editando["id"],
-                        nombre = nombre,
-                        tipo = tipo,
-                        precio = precio,
-                        stock = stock
+                        id_accesorio=accesorio_editando["id"],
+                        nombre=nombre,
+                        tipo=tipo,
+                        precio=precio,
+                        stock=stock
                     )
                 except TypeError:
                     acc_actualizado = Accesorio(
-                        id_accesorio = accesorio_editando["id"],
-                        nombre = nombre,
-                        tipo = tipo,
-                        precio = precio
+                        id_accesorio=accesorio_editando["id"],
+                        nombre=nombre,
+                        tipo=tipo,
+                        precio=precio
                     )
 
                 actualizar(acc_actualizado)
@@ -150,25 +151,25 @@ def CatalogoView(page: ft.Page, on_regresar=None):
             mostrar_mensaje(msg)
 
         except ValueError:
-            mostrar_mensaje("Verifica que el precio y stock sean números válidos.", es_error = True)
+            mostrar_mensaje("Verifica que el precio y stock sean números válidos.", es_error=True)
         except Exception as ex:
-            mostrar_mensaje(f"Error al guardar: {ex}", es_error = True)
+            mostrar_mensaje(f"Error al guardar: {ex}", es_error=True)
 
-    #BOTONES PARA EDIDION DE ACCESORIOS
+    # BOTONES PARA EDICION DE ACCESORIOS
     btn_guardar = ft.ElevatedButton(
         "Guardar Accesorio",
-        icon = ft.Icons.SAVE,
-        bgcolor = COLOR_GOLD,
-        color = COLOR_BG_DARK,
-        on_click = guardar_accesorio
+        icon=ft.Icons.SAVE,
+        bgcolor=COLOR_GOLD,
+        color=COLOR_BG_DARK,
+        on_click=guardar_accesorio
     )
 
     btn_cancelar_edicion = ft.OutlinedButton(
         "Cancelar Edición",
-        icon = ft.Icons.CANCEL,
-        icon_color = ft.Colors.RED_400,
-        visible = False,
-        on_click = cancelar_edicion
+        icon=ft.Icons.CANCEL,
+        icon_color=ft.Colors.RED_400,
+        visible=False,
+        on_click=cancelar_edicion
     )
 
     def cargar_en_formulario(id_acc, nombre, tipo, precio, stock=1):
@@ -187,13 +188,13 @@ def CatalogoView(page: ft.Page, on_regresar=None):
         except Exception:
             pass
 
-    #TABLA Y FILTROS POR CATEGORIA
+    # TABLA Y FILTROS POR CATEGORIA
     tabla_inventario = ft.DataTable(
-        border = ft.Border.all(1, COLOR_BORDER),
-        border_radius = 8,
-        heading_row_color = COLOR_BG_CARD,
-        column_spacing = 20,
-        columns = [
+        border=ft.Border.all(1, COLOR_BORDER),
+        border_radius=8,
+        heading_row_color=COLOR_BG_CARD,
+        column_spacing=20,
+        columns=[
             ft.DataColumn(ft.Text("ID", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Accesorio", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Tipo", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
@@ -201,7 +202,7 @@ def CatalogoView(page: ft.Page, on_regresar=None):
             ft.DataColumn(ft.Text("Stock", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Acciones", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
         ],
-        rows = []
+        rows=[]
     )
 
     def seleccionar_filtro_categoria(categoria):
@@ -227,11 +228,11 @@ def CatalogoView(page: ft.Page, on_regresar=None):
                 ),
                 bgcolor=COLOR_GOLD if cat == "Todos" else COLOR_BG_DARK,
                 color=COLOR_BG_DARK if cat == "Todos" else COLOR_TEXT_SECONDARY,
-                on_click = lambda e, c=cat: seleccionar_filtro_categoria(c)
+                on_click=lambda e, c=cat: seleccionar_filtro_categoria(c)
             ) for cat in categorias_filtro
         ],
-        spacing = 8,
-        scroll = ft.ScrollMode.AUTO
+        spacing=8,
+        scroll=ft.ScrollMode.AUTO
     )
 
     def actualizar_metricas():
@@ -243,16 +244,16 @@ def CatalogoView(page: ft.Page, on_regresar=None):
             ft.Divider(color=COLOR_BORDER, height=10),
             
             ft.Container(
-                bgcolor = COLOR_BG_DARK,
-                padding = 20,
-                border_radius = 8,
-                border = ft.Border.all(1, COLOR_BORDER),
-                content = ft.Row([
+                bgcolor=COLOR_BG_DARK,
+                padding=20,
+                border_radius=8,
+                border=ft.Border.all(1, COLOR_BORDER),
+                content=ft.Row([
                     ft.Icon(ft.Icons.INVENTORY_2, color=COLOR_GOLD, size=32),
                     ft.Column([
-                        ft.Text("Total de Accesorios", size = 13, color = COLOR_TEXT_SECONDARY),
-                        ft.Text(f"{total_items} tipos registrados", size = 18, color = COLOR_TEXT_PRIMARY, weight = ft.FontWeight.BOLD),
-                    ], spacing = 2)
+                        ft.Text("Total de Accesorios", size=13, color=COLOR_TEXT_SECONDARY),
+                        ft.Text(f"{total_items} tipos registrados", size=18, color=COLOR_TEXT_PRIMARY, weight=ft.FontWeight.BOLD),
+                    ], spacing=2)
                 ])
             ),
         ])
@@ -290,6 +291,64 @@ def CatalogoView(page: ft.Page, on_regresar=None):
 
         return "", str(item), "", 0.0, 1
 
+    #ELIMINAR ACCESORIO CON VALIDACIÓN DE PEDIDOS
+    def confirmar_eliminar(id_p, nombre):
+        en_uso = esta_en_pedidos(id_p)
+
+        def inhabilitar_registro(e_accion):
+            try:
+                #NO USO = ELIMINAR
+                eliminar(id_p)
+                dialogo.open = False
+                page.update()
+                cargar_datos_tabla()
+                mostrar_mensaje(f"✓ Accesorio '{nombre}' inhabilitado correctamente.")
+            except Exception as ex:
+                dialogo.open = False
+                page.update()
+                mostrar_mensaje(f"Error al procesar: {ex}", es_error=True)
+
+        def cerrar_dialogo(e_canc):
+            dialogo.open = False
+            page.update()
+
+        #REUTILIZAR LA VENTANA
+        if en_uso:
+            dialogo = ft.AlertDialog(
+                title=ft.Row([
+                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.AMBER_400, size=28),
+                    ft.Text("No se puede eliminar", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)
+                ], spacing=10),
+                content=ft.Text(
+                    f"El accesorio '{nombre}' está registrado en uno o más pedidos activos.\n\n"
+                    "Para proteger el historial de ventas y la integridad de la base de datos, no es posible borrarlo.",
+                    color=COLOR_BG_DARK
+                ),
+                actions=[
+                    ft.ElevatedButton(
+                        "Entendido", 
+                        bgcolor=COLOR_GOLD, 
+                        color=COLOR_BG_DARK, 
+                        on_click=cerrar_dialogo
+                    ),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+        else:
+            dialogo = ft.AlertDialog(
+                title=ft.Text("Confirmar Inhabilitación", color=COLOR_GOLD, weight=ft.FontWeight.BOLD),
+                content=ft.Text(f"¿Deseas inhabilitar '{nombre}'? Dejará de mostrarse en el catálogo activo."),
+                actions=[
+                    ft.TextButton("Cancelar", on_click=cerrar_dialogo),
+                    ft.ElevatedButton("Inhabilitar", bgcolor=ft.Colors.RED_600, color=ft.Colors.WHITE, on_click=inhabilitar_registro),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+
+        page.overlay.append(dialogo)
+        dialogo.open = True
+        page.update()
+
     def filtrar_tabla():
         tabla_inventario.rows.clear()
         busqueda = txt_buscar.value.strip().lower() if txt_buscar.value else ""
@@ -305,35 +364,35 @@ def CatalogoView(page: ft.Page, on_regresar=None):
                 tabla_inventario.rows.append(
                     ft.DataRow(
                         cells=[
-                            ft.DataCell(ft.Text(str(id_acc), color = COLOR_GOLD, weight = ft.FontWeight.BOLD)),
-                            ft.DataCell(ft.Text(nombre, color = COLOR_TEXT_PRIMARY)),
-                            ft.DataCell(ft.Text(tipo if tipo else "Sin categoría", color = COLOR_TEXT_SECONDARY)),
-                            ft.DataCell(ft.Text(f"${precio:.2f}", color = COLOR_GOLD, weight = ft.FontWeight.BOLD)),
+                            ft.DataCell(ft.Text(str(id_acc), color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
+                            ft.DataCell(ft.Text(nombre, color=COLOR_TEXT_PRIMARY)),
+                            ft.DataCell(ft.Text(tipo if tipo else "Sin categoría", color=COLOR_TEXT_SECONDARY)),
+                            ft.DataCell(ft.Text(f"${precio:.2f}", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
                             ft.DataCell(
                                 ft.Container(
-                                    content = ft.Text(f"{stock} pzas", color = COLOR_TEXT_PRIMARY, weight = ft.FontWeight.BOLD),
-                                    bgcolor = COLOR_BG_DARK,
-                                    padding = 6,
-                                    border_radius = 4
+                                    content=ft.Text(f"{stock} pzas", color=COLOR_TEXT_PRIMARY, weight=ft.FontWeight.BOLD),
+                                    bgcolor=COLOR_BG_DARK,
+                                    padding=6,
+                                    border_radius=4
                                 )
                             ),
                             ft.DataCell(
                                 ft.Row(
-                                    controls = [
+                                    controls=[
                                         ft.IconButton(
-                                            icon = ft.Icons.EDIT_OUTLINED,
-                                            icon_color = COLOR_GOLD,
-                                            tooltip ="Editar Accesorio",
-                                            on_click = lambda e, i = id_acc, n = nombre, t = tipo, p = precio, s = stock: cargar_en_formulario(i, n, t, p, s)
+                                            icon=ft.Icons.EDIT_OUTLINED,
+                                            icon_color=COLOR_GOLD,
+                                            tooltip="Editar Accesorio",
+                                            on_click=lambda e, i=id_acc, n=nombre, t=tipo, p=precio, s=stock: cargar_en_formulario(i, n, t, p, s)
                                         ),
                                         ft.IconButton(
-                                            icon = ft.Icons.DELETE_OUTLINE,
-                                            icon_color = ft.Colors.RED_400,
-                                            tooltip = "Eliminar Accesorio",
-                                            on_click = lambda e, i = id_acc, n = nombre: confirmar_eliminar(i, n)
+                                            icon=ft.Icons.DELETE_OUTLINE,
+                                            icon_color=ft.Colors.RED_400,
+                                            tooltip="Eliminar Accesorio",
+                                            on_click=lambda e, i=id_acc, n=nombre: confirmar_eliminar(i, n)
                                         ),
                                     ],
-                                    spacing = 0
+                                    spacing=0
                                 )
                             ),
                         ]
@@ -358,86 +417,55 @@ def CatalogoView(page: ft.Page, on_regresar=None):
         actualizar_metricas()
         filtrar_tabla()
 
-    #ELIMINAR  ACCESORIO
-    def confirmar_eliminar(id_acc, nombre):
-        def borrar(e):
-            try:
-                eliminar(id_acc)
-                dialogo.open = False
-                cargar_datos_tabla()
-                mostrar_mensaje(f"✓ Accesorio '{nombre}' eliminado con éxito.")
-            except Exception as ex:
-                dialogo.open = False
-                mostrar_mensaje(f"Error al eliminar: {ex}", es_error = True)
-
-        def cancelar(e):
-            dialogo.open = False
-            page.update()
-
-        dialogo = ft.AlertDialog(
-            title = ft.Text("Confirmar Eliminación", color=COLOR_GOLD, weight=ft.FontWeight.BOLD),
-            content = ft.Text(f"¿Estás seguro de que deseas eliminar '{nombre}'?"),
-            actions = [
-                ft.TextButton("Cancelar", on_click = cancelar),
-                ft.ElevatedButton("Eliminar", bgcolor = ft.Colors.RED_600, color = ft.Colors.WHITE, on_click = borrar),
-            ],
-            actions_alignment = ft.MainAxisAlignment.END,
-        )
-        page.overlay.append(dialogo)
-        dialogo.open = True
-        page.update()
-
-    cargar_datos_tabla()
-
-    #VISTA PRINCIPAL
+    # VISTA PRINCIPAL
     vista_principal = ft.Column(
         controls=[
-            #PARTE SUPERIOR
+            # PARTE SUPERIOR
             ft.Row(
-                controls = [
+                controls=[
                     ft.IconButton(
-                        icon = ft.Icons.ARROW_BACK,
-                        icon_color = COLOR_GOLD,
-                        icon_size = 28,
-                        tooltip = "Volver al menú de catálogo",
-                        on_click =lambda _: on_regresar() if on_regresar else None
+                        icon=ft.Icons.ARROW_BACK,
+                        icon_color=COLOR_GOLD,
+                        icon_size=28,
+                        tooltip="Volver al menú de catálogo",
+                        on_click=lambda _: on_regresar() if on_regresar else None
                     ),
                     ft.Column(
-                        controls =[
+                        controls=[
                             ft.Text(
                                 "CONTROL DE ACCESORIOS E INVENTARIO",
-                                font_family = FOND_BRAND,
-                                size = 22,
-                                color = COLOR_GOLD,
-                                weight = ft.FontWeight.BOLD,
+                                font_family=FOND_BRAND,
+                                size=22,
+                                color=COLOR_GOLD,
+                                weight=ft.FontWeight.BOLD,
                             ),
                             ft.Text(
                                 "Gestión y registro de accesorios",
-                                size = 13,
-                                color = COLOR_TEXT_SECONDARY,
+                                size=13,
+                                color=COLOR_TEXT_SECONDARY,
                             ),
                         ],
-                        spacing = 2
+                        spacing=2
                     )
                 ],
-                alignment = ft.MainAxisAlignment.START,
-                vertical_alignment = ft.CrossAxisAlignment.CENTER
+                alignment=ft.MainAxisAlignment.START,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER
             ),
             
-            ft.Divider(color = COLOR_BORDER, height = 10),
+            ft.Divider(color=COLOR_BORDER, height=10),
 
             # FORMULARIO DE FONDO
             ft.Container(
-                bgcolor = COLOR_BG_CARD,
-                padding = 20,
-                border_radius = 10,
-                border = ft.Border.all(1, COLOR_BORDER),
-                content = ft.Column(
-                    controls = [
-                        ft.Text("Registrar / Editar Accesorio", size = 16, color = COLOR_TEXT_PRIMARY, weight = ft.FontWeight.BOLD),
-                        ft.Row(controls = [txt_nombre, txt_tipo], spacing = 15),
+                bgcolor=COLOR_BG_CARD,
+                padding=20,
+                border_radius=10,
+                border=ft.Border.all(1, COLOR_BORDER),
+                content=ft.Column(
+                    controls=[
+                        ft.Text("Registrar / Editar Accesorio", size=16, color=COLOR_TEXT_PRIMARY, weight=ft.FontWeight.BOLD),
+                        ft.Row(controls=[txt_nombre, txt_tipo], spacing=15),
                         ft.Row(
-                            controls = [
+                            controls=[
                                 txt_precio,
                                 txt_stock,
                                 btn_guardar,
@@ -445,63 +473,65 @@ def CatalogoView(page: ft.Page, on_regresar=None):
                                 lbl_mensaje
                             ],
                             spacing=15,
-                            vertical_alignment = ft.CrossAxisAlignment.CENTER
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER
                         )
                     ],
-                    spacing = 12,
+                    spacing=12,
                 )
             ),
 
-            ft.Container(height = 5),
+            ft.Container(height=5),
 
-            # SECCIÓN INFERIOR
+            #SECCIÓN INFERIOR
             ft.Row(
-                controls = [
-                    #COLUMNA IZQUIERDA-BUSCADOR + FILTROS + TABLA
+                controls=[
+                    #COLUMNA IZQUIERDA - BUSCADOR + FILTROS
                     ft.Container(
-                        bgcolor = COLOR_BG_CARD,
-                        padding = 15,
+                        bgcolor=COLOR_BG_CARD,
+                        padding=15,
                         border_radius=10,
-                        border = ft.Border.all(1, COLOR_BORDER),
-                        expand = 2,
-                        content = ft.Column(
-                            controls = [
+                        border=ft.Border.all(1, COLOR_BORDER),
+                        expand=2,
+                        content=ft.Column(
+                            controls=[
                                 ft.Row(
-                                    controls = [
-                                        ft.Icon(ft.Icons.LIST_ALT, color = COLOR_GOLD),
-                                        ft.Text("Lista de Accesorios Registrados", size = 16, color = COLOR_TEXT_PRIMARY, weight = ft.FontWeight.BOLD),
+                                    controls=[
+                                        ft.Icon(ft.Icons.LIST_ALT, color=COLOR_GOLD),
+                                        ft.Text("Lista de Accesorios Registrados", size=16, color=COLOR_TEXT_PRIMARY, weight=ft.FontWeight.BOLD),
                                     ],
-                                    spacing = 10
+                                    spacing=10
                                 ),
-                                ft.Divider(color = COLOR_BORDER, height=5),
+                                ft.Divider(color=COLOR_BORDER, height=5),
                                 txt_buscar,
                                 row_filtros,
-                                ft.Divider(color = COLOR_BORDER, height=5),
+                                ft.Divider(color=COLOR_BORDER, height=5),
                                 ft.Row(
-                                    controls = [tabla_inventario],
-                                    scroll = ft.ScrollMode.AUTO
+                                    controls=[tabla_inventario],
+                                    scroll=ft.ScrollMode.AUTO
                                 )
                             ],
-                            spacing = 10
+                            spacing=10
                         )
                     ),
 
-                    #COLUMNA-TOTAL DE ACCESORIOS
+                    #COLUMNA - TOTAL DE ACCESORIOS
                     ft.Container(
-                        bgcolor = COLOR_BG_CARD,
-                        padding = 15,
-                        border_radius = 10,
-                        border = ft.Border.all(1, COLOR_BORDER),
-                        expand = 1,
-                        content = col_metricas
+                        bgcolor=COLOR_BG_CARD,
+                        padding=15,
+                        border_radius=10,
+                        border=ft.Border.all(1, COLOR_BORDER),
+                        expand=1,
+                        content=col_metricas
                     )
                 ],
-                spacing = 15,
-                vertical_alignment = ft.CrossAxisAlignment.START
+                spacing=15,
+                vertical_alignment=ft.CrossAxisAlignment.START
             )
         ],
-        spacing = 10,
-        scroll = ft.ScrollMode.AUTO
+        spacing=10,
+        scroll=ft.ScrollMode.AUTO
     )
+
+    cargar_datos_tabla()
 
     return vista_principal
