@@ -3,6 +3,7 @@ from ui.styles import (COLOR_BG_DARK, COLOR_BG_CARD, COLOR_GOLD, COLOR_TEXT_PRIM
 from ui.catalogo_accesorios_view import CatalogoView
 from ui.catalogo_main_view import CatalogoMainView
 from ui.citas_medidas_main_view import CitasMedidasMainView
+from ui.medida_view import MedidaView
 from ui.pedidos_main_view import PedidosMainView
 from ui.registro_pedido_view import RegistroPedidoView
 from ui.toma_medidas_view import TomaMedidasView
@@ -208,6 +209,11 @@ def DashboardView(page: ft.Page, on_navigate):
         elif vista in ["citas", "agendar_cita"]:
             opcion_activa["actual"] = "citas"
             contenido_principal.content = CitasMedidasMainView(page)
+        elif vista == "medidas":
+            contenido_principal.content = MedidaView(
+                page=page,
+                on_regresar=lambda: cambiar_panel("dashboard")
+            )
         else:
             contenido_principal.content = ft.Text(
                 f"MÓDULO: {vista.upper()}", 
