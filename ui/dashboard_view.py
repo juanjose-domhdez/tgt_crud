@@ -3,6 +3,9 @@ from ui.styles import (COLOR_BG_DARK, COLOR_BG_CARD, COLOR_GOLD, COLOR_TEXT_PRIM
 from ui.catalogo_accesorios_view import CatalogoView
 from ui.catalogo_main_view import CatalogoMainView
 from ui.citas_medidas_main_view import CitasMedidasMainView
+from ui.pedidos_main_view import PedidosMainView
+from ui.registro_pedido_view import RegistroPedidoView
+from ui.toma_medidas_view import TomaMedidasView
 
 def DashboardView(page: ft.Page, on_navigate):
     opcion_activa = {"actual": "dashboard"}
@@ -192,7 +195,16 @@ def DashboardView(page: ft.Page, on_navigate):
         if vista in ["dashboard", "inicio"]:
             contenido_principal.content = vista_inicio
         elif vista == "catalogo":
-            contenido_principal.content = CatalogoMainView(page)
+             contenido_principal.content = CatalogoMainView(page)
+        
+        elif vista == "nuevo_pedido":
+            contenido_principal.content = RegistroPedidoView(
+                page=page,
+                on_regresar=lambda: cambiar_panel("dashboard")
+            )
+
+        elif vista == "pedidos":
+            contenido_principal.content = PedidosMainView(page)
         elif vista in ["citas", "agendar_cita"]:
             opcion_activa["actual"] = "citas"
             contenido_principal.content = CitasMedidasMainView(page)
