@@ -164,7 +164,7 @@ def RegistroPedidoView(page=None, on_regresar=None):
 
                     ]
                 ),
-
+        
 
 
                 ft.Divider(),
@@ -296,4 +296,4 @@ def RegistroPedidoView(page=None, on_regresar=None):
 
         )
 
-    
+    )
