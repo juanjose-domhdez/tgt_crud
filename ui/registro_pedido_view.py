@@ -296,4 +296,4 @@ def RegistroPedidoView(page=None, on_regresar=None):
 
         )
 
-    
+    )
