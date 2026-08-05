@@ -75,3 +75,18 @@ def actualizar(accesorio):
     conexion.commit()
     cursor.close()
     conexion.close()
+
+def esta_en_pedidos(id_accesorio):
+    sql= "SELECT COUNT (*) FROM detalle_accesorio WHERE id_accesorio = %s;"
+    try:
+        conexion = Conexion.obtener_conexion()
+        cursor = conexion.cursor()
+        cursor.execute(sql,(id_accesorio,))
+        resultado = cursor.fetchone()
+        cursor.close()
+        conexion.close()
+
+        return resultado[0] > 0 if resultado else False
+    except Exception as ex:
+        print(f"Error al verificar accesorios en pedidos: {ex}")
+        return True

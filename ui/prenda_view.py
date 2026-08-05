@@ -47,7 +47,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         ]
     )
 
-    #TALLA-COLOR
+    # TALLA - COLOR - PRECIO - STOCK
     txt_talla = ft.TextField(
         label="Talla (ej. S, M, L)", 
         border_color=COLOR_BORDER, 
@@ -68,6 +68,15 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         color=COLOR_TEXT_PRIMARY, 
         keyboard_type=ft.KeyboardType.NUMBER,
         width=150
+    )
+
+    txt_stock = ft.TextField(
+        label="Stock",
+        value="1",
+        border_color=COLOR_BORDER,
+        color=COLOR_TEXT_PRIMARY,
+        keyboard_type=ft.KeyboardType.NUMBER,
+        width=120
     )
 
     # BUSCADOR
@@ -123,6 +132,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         txt_talla.value = ""
         txt_color.value = ""
         txt_precio.value = ""
+        txt_stock.value = "1"
         btn_guardar.text = "Guardar Prenda"
         btn_guardar.icon = ft.Icons.SAVE
         btn_cancelar_edicion.visible = False
@@ -136,6 +146,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         talla = txt_talla.value.strip() if txt_talla.value else "-"
         color = txt_color.value.strip() if txt_color.value else "-"
         precio_raw = txt_precio.value.strip() if txt_precio.value else ""
+        stock_raw = txt_stock.value.strip() if txt_stock.value else "1"
         
         precio_raw = precio_raw.replace("$", "").replace(",", "")
 
@@ -145,6 +156,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
 
         try:
             precio = float(precio_raw)
+            stock = int(stock_raw)
 
             if prenda_editando["id"] is None:
                 nueva_prenda = Prenda(
@@ -152,7 +164,8 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                     modelo=nombre,
                     talla=talla,
                     color=color,
-                    precio=precio
+                    precio=precio,
+                    stock=stock
                 )
                 dao.insertar(nueva_prenda)
                 msg = f"✓ Prenda '{nombre}' guardada con éxito."
@@ -163,7 +176,8 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                     modelo=nombre,
                     talla=talla,
                     color=color,
-                    precio=precio
+                    precio=precio,
+                    stock=stock
                 )
                 dao.actualizar(prenda_actualizada)
                 msg = f"✓ Prenda '{nombre}' actualizada con éxito."
@@ -173,7 +187,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
             mostrar_mensaje(msg, e=e)
 
         except ValueError:
-            mostrar_mensaje("Verifica que el precio sea un número válido.", es_error=True, e=e)
+            mostrar_mensaje("Verifica que el precio y stock sean valores numéricos válidos.", es_error=True, e=e)
         except Exception as ex:
             mostrar_mensaje(f"Error al guardar: {ex}", es_error=True, e=e)
 
@@ -194,7 +208,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         on_click=cancelar_edicion
     )
 
-    def cargar_en_formulario(id_prenda, modelo, tipo, talla, color, precio, e=None):
+    def cargar_en_formulario(id_prenda, modelo, tipo, talla, color, precio, stock=1, e=None):
         ocultar_mensaje()
         prenda_editando["id"] = id_prenda
         txt_nombre.value = modelo
@@ -205,13 +219,14 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         txt_talla.value = talla if talla != "-" else ""
         txt_color.value = color if color != "-" else ""
         txt_precio.value = str(precio)
+        txt_stock.value = str(stock)
         
         btn_guardar.text = "Actualizar Prenda"
         btn_guardar.icon = ft.Icons.EDIT
         btn_cancelar_edicion.visible = True
         actualizar_interfaz(e)
 
-    # TABLA DE PRENDAS (Con Talla y Color)
+    # TABLA DE PRENDAS
     tabla_inventario = ft.DataTable(
         border=ft.Border.all(1, COLOR_BORDER),
         border_radius=8,
@@ -224,6 +239,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
             ft.DataColumn(ft.Text("Talla", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Color", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Precio Base", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Stock", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
             ft.DataColumn(ft.Text("Acciones", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
         ],
         rows=[]
@@ -288,21 +304,27 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
             talla = getattr(item, "talla", "-") or "-"
             color = getattr(item, "color", "-") or "-"
             precio = getattr(item, "precio", 0.0) or 0.0
-            return id_p, str(tipo), str(modelo), str(talla), str(color), float(precio)
+            stock = getattr(item, "stock", 1) or 1
+            return id_p, str(tipo), str(modelo), str(talla), str(color), float(precio), int(stock)
 
         if isinstance(item, (list, tuple)):
             id_p = item[0] if len(item) > 0 else ""
-            tipo = item[2] if len(item) > 2 and item[2] is not None else ""
-            modelo = item[3] if len(item) > 3 and item[3] is not None else ""
-            talla = item[4] if len(item) > 4 and item[4] is not None else "-"
-            color = item[5] if len(item) > 5 and item[5] is not None else "-"
+            tipo = item[1] if len(item) > 1 and item[1] is not None else ""
+            modelo = item[2] if len(item) > 2 and item[2] is not None else ""
+            talla = item[3] if len(item) > 3 and item[3] is not None else "-"
+            color = item[4] if len(item) > 4 and item[4] is not None else "-"
             try:
-                precio = float(item[6]) if len(item) > 6 and item[6] is not None else 0.0
+                precio = float(item[5]) if len(item) > 5 and item[5] is not None else 0.0
             except (ValueError, TypeError):
                 precio = 0.0
-            return id_p, str(tipo), str(modelo), str(talla), str(color), precio
+            try:
+                stock = int(item[6]) if len(item) > 6 and item[6] is not None else 1
+            except (ValueError, TypeError):
+                stock = 1
 
-        return "", "", str(item), "-", "-", 0.0
+            return id_p, str(tipo), str(modelo), str(talla), str(color), precio, stock
+
+        return "", "", str(item), "-", "-", 0.0, 1
 
     def filtrar_tabla(e=None):
         tabla_inventario.rows.clear()
@@ -310,7 +332,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         cat_filtro = categoria_seleccionada["valor"]
 
         for item in datos_completos:
-            id_p, tipo, modelo, talla, color, precio = extraer_datos_item(item)
+            id_p, tipo, modelo, talla, color, precio, stock = extraer_datos_item(item)
 
             coincide_texto = (
                 (busqueda in modelo.lower()) or 
@@ -330,6 +352,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                             ft.DataCell(ft.Text(talla if talla else "-", color=COLOR_TEXT_PRIMARY)),
                             ft.DataCell(ft.Text(color if color else "-", color=COLOR_TEXT_PRIMARY)),
                             ft.DataCell(ft.Text(f"${precio:.2f}", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)),
+                            ft.DataCell(ft.Text(str(stock), color=COLOR_TEXT_PRIMARY)),
                             ft.DataCell(
                                 ft.Row(
                                     controls=[
@@ -337,7 +360,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                                             icon=ft.Icons.EDIT_OUTLINED,
                                             icon_color=COLOR_GOLD,
                                             tooltip="Editar Prenda",
-                                            on_click=lambda e, i=id_p, m=modelo, t=tipo, ta=talla, c=color, p=precio: cargar_en_formulario(i, m, t, ta, c, p, e)
+                                            on_click=lambda e, i=id_p, m=modelo, t=tipo, ta=talla, c=color, p=precio, s=stock: cargar_en_formulario(i, m, t, ta, c, p, s, e)
                                         ),
                                         ft.IconButton(
                                             icon=ft.Icons.DELETE_OUTLINE,
@@ -412,7 +435,6 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
 
     cargar_datos_tabla()
 
-
     vista_principal = ft.Column(
         controls=[
             # PARTE SUPERIOR
@@ -449,7 +471,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
             
             ft.Divider(color=COLOR_BORDER, height=10),
 
-            #TALLA-COLOR
+            # REGISTRO Y EDICIÓN
             ft.Container(
                 bgcolor=COLOR_BG_CARD,
                 padding=20,
@@ -464,6 +486,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                                 txt_talla,
                                 txt_color,
                                 txt_precio,
+                                txt_stock,
                             ],
                             spacing=15
                         ),
@@ -483,7 +506,6 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
 
             ft.Container(height=5),
 
-            
             ft.Row(
                 controls=[
                     # COLUMNA- BUSCADOR + FILTROS + TABLA

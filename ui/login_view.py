@@ -88,9 +88,7 @@ def LoginView(page: ft.page, on_login_success):
                     ),
                     on_click = iniciar_sesion_click, 
                 ),
-                ft.TextButton(
-                    content = ft.Text("¿Olvidaste tu contraseña?", color = COLOR_TEXT_SECONDARY),
-                ),
+               
             ],
             horizontal_alignment = ft.CrossAxisAlignment.CENTER,
             spacing = 10,
