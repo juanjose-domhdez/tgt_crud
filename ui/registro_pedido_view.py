@@ -366,7 +366,7 @@ def RegistroPedidoView(page=None, on_regresar=None):
                         ]
                     )
                 ),
-
+        
 
                 ft.Container(height=10),
 
