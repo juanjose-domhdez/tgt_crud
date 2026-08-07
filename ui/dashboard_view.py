@@ -3,7 +3,7 @@ from ui.styles import (COLOR_BG_DARK, COLOR_BG_CARD, COLOR_GOLD, COLOR_TEXT_PRIM
 from ui.catalogo_accesorios_view import CatalogoView
 from ui.catalogo_main_view import CatalogoMainView
 from ui.citas_medidas_main_view import CitasMedidasMainView
-from ui.pedidos_main_view import PedidosMainView
+from ui.ver_pedidos_main_view import PedidosMainView
 from ui.registro_pedido_view import RegistroPedidoView
 from ui.toma_medidas_view import TomaMedidasView
 
@@ -203,8 +203,12 @@ def DashboardView(page: ft.Page, on_navigate):
                 on_regresar=lambda: cambiar_panel("dashboard")
             )
 
-        elif vista == "pedidos":
-            contenido_principal.content = PedidosMainView(page)
+        elif vista in ["pedidos", "ver_pedidos"]:
+            opcion_activa["actual"] = "pedidos"
+            contenido_principal.content = PedidosMainView(
+                page=page,
+                on_regresar=lambda: cambiar_panel("dashboard")
+            )
         elif vista in ["citas", "agendar_cita"]:
             opcion_activa["actual"] = "citas"
             contenido_principal.content = CitasMedidasMainView(page)
@@ -226,77 +230,6 @@ def DashboardView(page: ft.Page, on_navigate):
     return ft.Row(
         controls = [
             sidebar_container,
-            contenido_principal,
-        ],
-        expand = True,
-        spacing = 0,
-    )
-
-    #MENU LATERAL
-    sidebar = ft.Container(
-        width = 250,
-        bgcolor = COLOR_BG_CARD,
-        padding = 20,
-        border = ft.Border(right = ft.BorderSide(1, COLOR_BORDER)),
-        content = ft.Column(
-            controls=[
-                ft.Row(
-                    controls=[
-                        ft.Icon(ft.Icons.SHIELD_OUTLINED, color=COLOR_GOLD, size=24),
-                        ft.Text(
-                            " THE GENTLEMAN'S TAILOR",
-                            font_family = FOND_BRAND,
-                            size = 12,
-                            color = COLOR_GOLD,
-                            weight = ft.FontWeight.BOLD,
-                        ),
-                    ],
-                    alignment = ft.MainAxisAlignment.CENTER,
-                    vertical_alignment = ft.CrossAxisAlignment.CENTER
-                ),
-                ft.Divider(color = COLOR_BORDER, height = 20),
-                
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.DASHBOARD_OUTLINED, color=COLOR_GOLD),
-                    title = ft.Text("Inicio", color=COLOR_TEXT_PRIMARY),
-                    on_click = lambda _: cambiar_panel("dashboard"),
-                ),
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.SHOPPING_BAG_OUTLINED, color = COLOR_TEXT_SECONDARY),
-                    title = ft.Text("Pedidos", color = COLOR_TEXT_SECONDARY),
-                    on_click = lambda _: cambiar_panel("pedidos"),
-                ),
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.CALENDAR_MONTH_OUTLINED, color = COLOR_TEXT_SECONDARY),
-                    title = ft.Text("Citas y Medidas", color = COLOR_TEXT_SECONDARY),
-                    on_click = lambda _: cambiar_panel("citas"),
-                ),
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.PEOPLE_OUTLINE, color = COLOR_TEXT_SECONDARY),
-                    title = ft.Text("Clientes", color = COLOR_TEXT_SECONDARY),
-                    on_click = lambda _: cambiar_panel("clientes"),
-                ),
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.INVENTORY_2_OUTLINED, color = COLOR_TEXT_SECONDARY),
-                    title = ft.Text("Catálogo", color = COLOR_TEXT_SECONDARY),
-                    on_click = lambda _: cambiar_panel("catalogo"),
-                ),
-                
-                ft.Container(expand = True),
-                ft.Divider(color = COLOR_BORDER, height = 20),
-                ft.ListTile(
-                    leading = ft.Icon(ft.Icons.LOGOUT, color=ft.Colors.RED_400),
-                    title = ft.Text("Cerrar Sesión", color=ft.Colors.RED_400),
-                    on_click = lambda _: on_navigate("login"),
-                ),
-            ],
-            spacing = 5,
-        ),
-    )
-
-    return ft.Row(
-        controls = [
-            sidebar,
             contenido_principal,
         ],
         expand = True,
