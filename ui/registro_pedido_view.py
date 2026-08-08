@@ -1,5 +1,5 @@
 import flet as ft
-from datetime import datetime
+from datetime import datetime, date
 from ui.styles import (
     COLOR_BG_DARK,
     COLOR_BG_CARD,
@@ -11,6 +11,13 @@ from ui.styles import (
     FONT_HEADING,
     FONT_BODY,
 )
+from dao.clientes_dao import ClienteDAO
+from dao.pedido_dao import PedidoDAO
+from dao.prenda_dao import PrendaDAO
+from dao.empleado_dao import EmpleadoDAO
+from models.clientes import Cliente
+from models.pedido import Pedido
+from models.prenda import Prenda
 
 
 def campo_texto(label, **kwargs):
@@ -74,6 +81,22 @@ def RegistroPedidoView(page=None, on_regresar=None):
         keyboard_type=ft.KeyboardType.NUMBER
     )
 
+    dd_empleado = campo_dropdown(
+        "Atendido por (opcional)",
+        width=250,
+        options=[]
+    )
+
+    def cargar_empleados():
+        try:
+            dd_empleado.options = [
+                ft.dropdown.Option(str(emp.id_empleado), text=f"{emp.nombre} ({emp.puesto})")
+                for emp in EmpleadoDAO.seleccionar()
+            ]
+        except Exception as ex:
+            print(f"❌ Error al cargar empleados: {ex}")
+            dd_empleado.options = []
+
     opciones_prenda = [
         "Traje",
         "Saco",
@@ -119,7 +142,34 @@ def RegistroPedidoView(page=None, on_regresar=None):
                     seleccionadas.append((fila["nombre"], cantidad))
         return seleccionadas
 
-    fecha_entrega = campo_texto("Fecha Entrega", width=200)
+    fecha_entrega = campo_texto("Fecha Entrega (DD/MM/AAAA)", width=200)
+
+    txt_fecha_pedido = campo_texto(
+        "Fecha Pedido",
+        value=datetime.now().strftime("%d/%m/%Y"),
+        width=200,
+        read_only=True,
+    )
+
+    dd_estado = campo_dropdown(
+        "Estado",
+        width=250,
+        value="Pendiente",
+        options=[
+            ft.dropdown.Option("Pendiente"),
+            ft.dropdown.Option("En proceso"),
+            ft.dropdown.Option("En confección"),
+            ft.dropdown.Option("Terminado"),
+            ft.dropdown.Option("Entregado")
+        ]
+    )
+
+    txt_observaciones = campo_texto(
+        "Observaciones",
+        multiline=True,
+        min_lines=4,
+        max_lines=6
+    )
 
 
     def calcular(e):
@@ -157,35 +207,111 @@ def RegistroPedidoView(page=None, on_regresar=None):
         if on_regresar:
             on_regresar()
 
+    def mostrar_snack(texto, es_error=False):
+        snack = ft.SnackBar(
+            content=ft.Text(texto),
+            bgcolor=ft.Colors.RED_400 if es_error else COLOR_GOLD
+        )
+        page.overlay.append(snack)
+        snack.open = True
+        page.update()
+
+    def limpiar_formulario():
+        cliente.value = ""
+        telefono.value = ""
+        dd_empleado.value = None
+        fecha_entrega.value = ""
+        txt_precio.value = ""
+        txt_anticipo.value = ""
+        restante.value = "Restante: $0.00"
+        dd_estado.value = "Pendiente"
+        txt_observaciones.value = ""
+        for fila in filas_tipo_prenda:
+            fila["checkbox"].value = False
+            fila["cantidad"].value = "0"
+
     def guardar_pedido(e):
         prendas_seleccionadas = obtener_prendas_seleccionadas()
 
-        if(
+        if (
             not cliente.value
             or not prendas_seleccionadas
             or not fecha_entrega.value
             or not txt_precio.value
             or not txt_anticipo.value
         ):
-            snack = ft.SnackBar(
-                content=ft.Text("No se guardo correctamente. Complete los cambios obligatorios."),
-                bgcolor=ft.Colors.RED_100
-            )
-        elif telefono.value and len(telefono.value) != 10:
-            snack = ft.SnackBar(
-                content=ft.Text("El teléfono debe tener 10 dígitos."),
-                bgcolor=ft.Colors.RED_100
-            )
-        else:
-            snack = ft.SnackBar(
-                content=ft.Text("Se guardo correctamente."),
-                bgcolor=COLOR_GOLD
-            )
+            mostrar_snack("No se guardó. Completa los campos obligatorios (cliente, al menos una prenda, fecha de entrega, precio y anticipo).", es_error=True)
+            return
 
-        page.overlay.append(snack)
-        snack.open = True
-        page.update()
+        if telefono.value and len(telefono.value) != 10:
+            mostrar_snack("El teléfono debe tener 10 dígitos.", es_error=True)
+            return
 
+        try:
+            precio = float(txt_precio.value)
+            anticipo = float(txt_anticipo.value)
+        except ValueError:
+            mostrar_snack("Precio y anticipo deben ser números válidos.", es_error=True)
+            return
+
+        try:
+            fecha_pedido_dt = datetime.strptime(txt_fecha_pedido.value, "%d/%m/%Y").date()
+            fecha_entrega_dt = datetime.strptime(fecha_entrega.value.strip(), "%d/%m/%Y").date()
+        except ValueError:
+            mostrar_snack("La fecha de entrega debe tener el formato DD/MM/AAAA.", es_error=True)
+            return
+
+        try:
+            # 1) Cliente: si ya existe uno con ese teléfono, se reutiliza.
+            #    Si no, se crea uno nuevo con los datos del formulario.
+            cliente_encontrado = ClienteDAO.buscar_por_telefono(telefono.value) if telefono.value else None
+
+            if cliente_encontrado:
+                id_cliente = cliente_encontrado.id_cliente
+                mensaje_cliente = f"cliente existente ({cliente_encontrado.nombre_completo})"
+            else:
+                id_cliente = ClienteDAO.insertar(Cliente(
+                    nombre_completo=cliente.value.strip(),
+                    telefono=telefono.value or "",
+                    fecha_registro=date.today(),
+                ))
+                mensaje_cliente = "cliente nuevo"
+
+            # 2) Pedido, ligado a ese cliente.
+            id_empleado = int(dd_empleado.value) if dd_empleado.value else None
+
+            id_pedido = PedidoDAO.insertar(Pedido(
+                id_cliente=id_cliente,
+                id_empleado=id_empleado,
+                fecha_pedido=fecha_pedido_dt,
+                fecha_entrega=fecha_entrega_dt,
+                anticipo=anticipo,
+                total=precio,
+                estado=dd_estado.value or "Pendiente",
+            ))
+
+            # 3) Una fila en "prendas" por cada unidad marcada (tipo + cantidad).
+            for nombre_prenda, cantidad in prendas_seleccionadas:
+                for _ in range(cantidad):
+                    PrendaDAO.insertar(Prenda(
+                        id_pedido=id_pedido,
+                        tipo_prenda=nombre_prenda,
+                        modelo="",
+                        talla="",
+                        color="",
+                        precio=0.0,
+                    ))
+
+            mostrar_snack(f"✓ Pedido #{id_pedido} guardado con éxito ({mensaje_cliente}).")
+            limpiar_formulario()
+            cargar_empleados()
+            if page:
+                page.update()
+
+        except Exception as ex:
+            mostrar_snack(f"Error al guardar el pedido: {ex}", es_error=True)
+
+    cargar_empleados()
 
     return ft.Container(
 
@@ -239,7 +365,7 @@ def RegistroPedidoView(page=None, on_regresar=None):
                                     telefono,
 
 
-                                    campo_texto("Correo", width=250)
+                                    dd_empleado
 
                                 ],
                                 vertical_alignment=ft.CrossAxisAlignment.START
@@ -250,11 +376,7 @@ def RegistroPedidoView(page=None, on_regresar=None):
                             ft.Row(
                                 [
 
-                                    campo_texto(
-                                        "Fecha Pedido",
-                                        value=datetime.now().strftime("%d/%m/%Y"),
-                                        width=200
-                                    ),
+                                    txt_fecha_pedido,
 
 
                                     fecha_entrega
@@ -341,27 +463,11 @@ def RegistroPedidoView(page=None, on_regresar=None):
 
 
 
-                            campo_dropdown(
-                                "Estado",
-                                width=250,
-                                value="Pendiente",
-                                options=[
-                                    ft.dropdown.Option("Pendiente"),
-                                    ft.dropdown.Option("En proceso"),
-                                    ft.dropdown.Option("En confección"),
-                                    ft.dropdown.Option("Terminado"),
-                                    ft.dropdown.Option("Entregado")
-                                ]
-                            ),
+                            dd_estado,
 
 
 
-                            campo_texto(
-                                "Observaciones",
-                                multiline=True,
-                                min_lines=4,
-                                max_lines=6
-                            ),
+                            txt_observaciones,
 
                         ]
                     )
