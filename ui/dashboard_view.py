@@ -4,13 +4,13 @@ from ui.catalogo_accesorios_view import CatalogoView
 from ui.catalogo_main_view import CatalogoMainView
 from ui.citas_medidas_main_view import CitasMedidasMainView
 from ui.medida_view import MedidaView
+from ui.clientes_view import ClientesView
 from ui.pedidos_main_view import PedidosMainView
 from ui.registro_pedido_view import RegistroPedidoView
 from ui.toma_medidas_view import TomaMedidasView
 
 def DashboardView(page: ft.Page, on_navigate):
     opcion_activa = {"actual": "dashboard"}
-    #RECUADROS
     def crear_tarjeta_modulo(titulo, subtitulo, icono, ruta):
         return ft.Container(
             content = ft.Column(
@@ -211,6 +211,11 @@ def DashboardView(page: ft.Page, on_navigate):
             contenido_principal.content = CitasMedidasMainView(page)
         elif vista == "medidas":
             contenido_principal.content = MedidaView(
+                page=page,
+                on_regresar=lambda: cambiar_panel("dashboard")
+            )
+        elif vista == "clientes":
+            contenido_principal.content = ClientesView(
                 page=page,
                 on_regresar=lambda: cambiar_panel("dashboard")
             )
