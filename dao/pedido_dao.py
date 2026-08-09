@@ -102,3 +102,5 @@ class PedidoDAO:
                 cursor.execute(sql, (id_pedido,))
                 conn.commit()
                 return cursor.rowcount
+
+  
