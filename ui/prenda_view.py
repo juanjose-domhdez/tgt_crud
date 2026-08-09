@@ -16,14 +16,14 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
 
     dao = PrendaDAO()
 
-    # MODO EDICION
+    
     prenda_editando = {"id": None}
     
     # FILTRADO
     datos_completos = []
     categoria_seleccionada = {"valor": "Todos"}
 
-    # CAMPOS DEL FORMULARIO
+    
     txt_nombre = ft.TextField(
         label="Nombre / Modelo", 
         border_color=COLOR_BORDER, 
@@ -508,7 +508,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
 
             ft.Row(
                 controls=[
-                    # COLUMNA- BUSCADOR + FILTROS + TABLA
+                   
                     ft.Container(
                         bgcolor=COLOR_BG_CARD,
                         padding=15,
@@ -537,7 +537,7 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
                         )
                     ),
 
-                    # COLUMNA - RESUMEN
+                   
                     ft.Container(
                         bgcolor=COLOR_BG_CARD,
                         padding=15,
@@ -554,5 +554,8 @@ def PrendaView(page: ft.Page = None, on_regresar=None):
         spacing=10,
         scroll=ft.ScrollMode.AUTO
     )
+
+   
+    vista_principal.refrescar = cargar_datos_tabla
 
     return vista_principal
