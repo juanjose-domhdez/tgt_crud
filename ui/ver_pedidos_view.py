@@ -126,7 +126,7 @@ def VerPedidosView(on_nuevo_pedido=None, on_regresar=None, page=None, **kwargs):
                         text_align=ft.TextAlign.CENTER,
                     ),
                     padding=20,
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment(0, 0),
                 )
             )
         else:

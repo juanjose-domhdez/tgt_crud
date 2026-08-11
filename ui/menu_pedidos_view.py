@@ -33,6 +33,7 @@ def MenuPedidosView(on_seleccionar_opcion=None, on_crear_pedido=None, on_ver_ped
             on_ver_pedidos()
 
     def tarjeta_opcion(icono, titulo, descripcion, texto_boton, on_click):
+        lado_borde = ft.BorderSide(1, COLOR_BORDER)
         return ft.Container(
             content=ft.Column(
                 [
@@ -67,7 +68,7 @@ def MenuPedidosView(on_seleccionar_opcion=None, on_crear_pedido=None, on_ver_ped
             height=280,
             bgcolor=COLOR_BG_CARD,
             border_radius=15,
-            border=ft.Border.all(1, COLOR_BORDER),
+            border=ft.Border(top=lado_borde, right=lado_borde, bottom=lado_borde, left=lado_borde),
         )
 
     return ft.Container(

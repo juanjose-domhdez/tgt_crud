@@ -9,11 +9,11 @@ from ui.styles import (
     COLOR_BORDER, 
     FOND_BRAND,
 )
-
 from ui.catalogo_main_view import CatalogoMainView
 from ui.citas_medidas_main_view import CitasMedidasMainView
 from ui.medida_view import MedidaView
 from ui.clientes_view import ClientesView
+from ui.menu_pedidos_view import MenuPedidosView
 from ui.registro_pedido_view import RegistroPedidoView
 from ui.ver_pedidos_view import VerPedidosView
 
@@ -143,14 +143,14 @@ def DashboardView(page: ft.Page, on_navigate):
                 ft.ListTile(
                     leading=ft.Icon(
                         ft.Icons.SHOPPING_BAG_OUTLINED,
-                        color=COLOR_GOLD if actual in ["pedidos", "ver_pedidos"] else COLOR_TEXT_SECONDARY,
+                        color=COLOR_GOLD if actual in ["pedidos", "ver_pedidos", "nuevo_pedido", "historial_pedidos"] else COLOR_TEXT_SECONDARY,
                     ),
                     title=ft.Text(
                         "Pedidos",
-                        color=COLOR_TEXT_PRIMARY if actual in ["pedidos", "ver_pedidos"] else COLOR_TEXT_SECONDARY,
-                        weight=ft.FontWeight.BOLD if actual in ["pedidos", "ver_pedidos"] else ft.FontWeight.NORMAL,
+                        color=COLOR_TEXT_PRIMARY if actual in ["pedidos", "ver_pedidos", "nuevo_pedido", "historial_pedidos"] else COLOR_TEXT_SECONDARY,
+                        weight=ft.FontWeight.BOLD if actual in ["pedidos", "ver_pedidos", "nuevo_pedido", "historial_pedidos"] else ft.FontWeight.NORMAL,
                     ),
-                    on_click=lambda _: cambiar_panel("ver_pedidos"),
+                    on_click=lambda _: cambiar_panel("pedidos"),
                 ),
 
                 ft.ListTile(
@@ -214,16 +214,24 @@ def DashboardView(page: ft.Page, on_navigate):
         elif vista == "nuevo_pedido":
             contenido_principal.content = RegistroPedidoView(
                 page=page,
-                on_regresar=lambda: cambiar_panel("ver_pedidos"),
-                on_guardar_exito=lambda: cambiar_panel("ver_pedidos"),
+                on_regresar=lambda: cambiar_panel("pedidos"),
+                on_guardar_exito=lambda: cambiar_panel("historial_pedidos"),
             )
 
         elif vista in ["pedidos", "ver_pedidos"]:
-            opcion_activa["actual"] = "ver_pedidos"
+            opcion_activa["actual"] = "pedidos"
+            contenido_principal.content = MenuPedidosView(
+                page=page,
+                on_crear_pedido=lambda: cambiar_panel("nuevo_pedido"),
+                on_ver_pedidos=lambda: cambiar_panel("historial_pedidos"),
+            )
+
+        elif vista == "historial_pedidos":
+            opcion_activa["actual"] = "pedidos"
             contenido_principal.content = VerPedidosView(
                 page=page,
                 on_nuevo_pedido=lambda: cambiar_panel("nuevo_pedido"),
-                on_regresar=lambda: cambiar_panel("dashboard"),
+                on_regresar=lambda: cambiar_panel("pedidos"),
             )
 
         elif vista in ["citas", "agendar_cita"]:
