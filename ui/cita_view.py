@@ -1,5 +1,5 @@
 import flet as ft
-from datetime import datetime
+from datetime import datetime, date
 from ui.styles import (
     COLOR_BG_DARK,
     COLOR_BG_CARD,
@@ -13,6 +13,9 @@ from dao.cita_dao import CitaDAO
 from dao.clientes_dao import ClienteDAO
 from dao.empleado_dao import EmpleadoDAO
 from models.cita import Cita
+from models.clientes import Cliente
+
+OPCION_NUEVO_CLIENTE = "__nuevo_cliente__"
 
 
 def CitaView(page: ft.Page = None, on_regresar=None):
@@ -109,12 +112,21 @@ def CitaView(page: ft.Page = None, on_regresar=None):
     def ocultar_mensaje():
         lbl_mensaje.visible = False
 
-    def cargar_combos():
+    def cargar_combos(mantener_seleccion=None):
         try:
-            dd_cliente.options = [
+            opciones = [
+                ft.dropdown.Option(
+                    OPCION_NUEVO_CLIENTE,
+                    content=ft.Text("+ Agregar cliente nuevo...", color=COLOR_GOLD, weight=ft.FontWeight.BOLD)
+                )
+            ]
+            opciones += [
                 ft.dropdown.Option(str(c.id_cliente), content=ft.Text(c.nombre_completo, color=COLOR_TEXT_PRIMARY))
                 for c in ClienteDAO.seleccionar()
             ]
+            dd_cliente.options = opciones
+            if mantener_seleccion is not None:
+                dd_cliente.value = str(mantener_seleccion)
         except Exception as ex:
             print(f"❌ Error al cargar clientes: {ex}")
             dd_cliente.options = []
@@ -127,6 +139,92 @@ def CitaView(page: ft.Page = None, on_regresar=None):
         except Exception as ex:
             print(f"❌ Error al cargar empleados: {ex}")
             dd_empleado.options = []
+
+    # ALTA RAPIDA DE CLIENTE (desde el propio combo de Citas)
+    txt_nuevo_nombre = ft.TextField(label="Nombre completo", border_color=COLOR_BORDER, color=COLOR_TEXT_PRIMARY)
+    txt_nuevo_telefono = ft.TextField(label="Teléfono", border_color=COLOR_BORDER, color=COLOR_TEXT_PRIMARY)
+    lbl_error_nuevo_cliente = ft.Text(value="", color=ft.Colors.RED_400, size=13, visible=False)
+
+    def cerrar_dialogo_nuevo_cliente(e=None, restaurar_a=None):
+        pg = obtener_pagina_activa(e)
+        dialogo_nuevo_cliente.open = False
+        if restaurar_a is not None:
+            dd_cliente.value = str(restaurar_a) if restaurar_a else None
+        if pg:
+            pg.update()
+
+    def guardar_cliente_rapido(e):
+        nombre = (txt_nuevo_nombre.value or "").strip()
+        telefono = (txt_nuevo_telefono.value or "").strip()
+
+        if not nombre:
+            lbl_error_nuevo_cliente.value = "El nombre es obligatorio."
+            lbl_error_nuevo_cliente.visible = True
+            actualizar_interfaz(e)
+            return
+
+        if telefono:
+            existente = ClienteDAO.buscar_por_telefono(telefono)
+            if existente:
+                lbl_error_nuevo_cliente.value = f"Ya existe un cliente con ese teléfono: {existente.nombre_completo}."
+                lbl_error_nuevo_cliente.visible = True
+                actualizar_interfaz(e)
+                return
+
+        try:
+            nuevo_id = ClienteDAO.insertar(Cliente(
+                nombre_completo=nombre,
+                telefono=telefono,
+                fecha_registro=date.today(),
+            ))
+        except Exception as ex:
+            lbl_error_nuevo_cliente.value = f"Error al registrar: {ex}"
+            lbl_error_nuevo_cliente.visible = True
+            actualizar_interfaz(e)
+            return
+
+        txt_nuevo_nombre.value = ""
+        txt_nuevo_telefono.value = ""
+        lbl_error_nuevo_cliente.visible = False
+        dialogo_nuevo_cliente.open = False
+
+        cargar_combos(mantener_seleccion=nuevo_id)
+        mostrar_mensaje("✓ Cliente agregado. Ya puedes continuar agendando la cita.", e=e)
+
+    dialogo_nuevo_cliente = ft.AlertDialog(
+        modal=True,
+        bgcolor=COLOR_BG_CARD,
+        title=ft.Text("Agregar cliente nuevo", color=COLOR_GOLD, weight=ft.FontWeight.BOLD),
+        content=ft.Column(
+            controls=[txt_nuevo_nombre, txt_nuevo_telefono, lbl_error_nuevo_cliente],
+            tight=True, spacing=12, width=320,
+        ),
+        actions=[
+            ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo_nuevo_cliente(e, restaurar_a=valor_cliente_previo.get("valor"))),
+            ft.ElevatedButton(
+                content=ft.Text("Guardar", color=COLOR_BG_DARK, weight=ft.FontWeight.BOLD),
+                bgcolor=COLOR_GOLD, on_click=guardar_cliente_rapido,
+            ),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    valor_cliente_previo = {"valor": None}
+
+    def al_cambiar_cliente(e):
+        if dd_cliente.value == OPCION_NUEVO_CLIENTE:
+            pg = obtener_pagina_activa(e)
+            txt_nuevo_nombre.value = ""
+            txt_nuevo_telefono.value = ""
+            lbl_error_nuevo_cliente.visible = False
+            if pg:
+                pg.overlay.append(dialogo_nuevo_cliente)
+                dialogo_nuevo_cliente.open = True
+                pg.update()
+        else:
+            valor_cliente_previo["valor"] = dd_cliente.value
+
+    dd_cliente.on_change = al_cambiar_cliente
 
     def cancelar_edicion(e=None):
         cita_editando["id"] = None
@@ -143,7 +241,7 @@ def CitaView(page: ft.Page = None, on_regresar=None):
 
     # GUARDAR / ACTUALIZAR CITA
     def guardar_cita(e):
-        if not dd_cliente.value or not dd_empleado.value:
+        if not dd_cliente.value or dd_cliente.value == OPCION_NUEVO_CLIENTE or not dd_empleado.value:
             mostrar_mensaje("Selecciona un cliente y un empleado.", es_error=True, e=e)
             return
 

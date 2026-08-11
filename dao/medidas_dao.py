@@ -5,6 +5,27 @@ from models.medidas import Medida
 class MedidaDAO:
 
     @classmethod
+    def obtener_por_cliente(cls, id_cliente):
+        sql = """
+            SELECT m.id_medida, m.id_pedido, m.pecho, m.cintura, m.hombros, m.manga, m.largo_pantalon
+            FROM medidas m
+            INNER JOIN pedido p ON m.id_pedido = p.id_pedido
+            WHERE p.id_cliente = %s
+            ORDER BY m.id_medida DESC
+        """
+        with Conexion.obtener_conexion() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql, (id_cliente,))
+                registros = cursor.fetchall()
+                return [
+                    Medida(
+                        id_medida=r[0], id_pedido=r[1], pecho=r[2], cintura=r[3],
+                        hombros=r[4], manga=r[5], largo_pantalon=r[6],
+                    )
+                    for r in registros
+                ]
+
+    @classmethod
     def seleccionar(cls):
         sql = """
             SELECT id_medida, id_pedido, pecho, cintura, hombros, manga, largo_pantalon
